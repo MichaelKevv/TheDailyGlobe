@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "530259255356",
+    "project_id": "thedailyglobe-316f1",
+    "storage_bucket": "thedailyglobe-316f1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530259255356:android:9ba6963244266b956be339",
+        "android_client_info": {
+          "package_name": "com.example.thedailyglobe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeBJLOmnmvU19laDi6A4R9QeuQkOUt4sY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
