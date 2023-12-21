@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:thedailyglobe/screen/article/EditArticle.dart';
+import 'package:thedailyglobe/screen/home/Home.dart';
 import 'package:thedailyglobe/screen/theme/Color.dart';
+import 'package:thedailyglobe/services/auth.dart';
 import 'package:thedailyglobe/services/firestore.dart';
 import 'package:thedailyglobe/utils/formatDate.dart';
 
@@ -15,6 +20,24 @@ class Article extends StatefulWidget {
 }
 
 class _ArticleState extends State<Article> {
+  final FirestoreService firestoreService = FirestoreService();
+  late String? role = "0";
+  final User? user = Auth().currentUser;
+  getUserRole() async {
+    String? temp = await firestoreService.getUserRoleByEmail(user?.email ?? "");
+    setState(() {
+      role = temp.toString();
+    });
+    print(role);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUserRole();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,27 +127,77 @@ class _ArticleState extends State<Article> {
                     indent: 32,
                     endIndent: 32,
                   ),
-                  InkWell(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return ShareBottomSheet();
-                        },
-                      );
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(left: 32, right: 32, top: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(Icons.share),
+                  Container(
+                    margin: EdgeInsets.only(left: 32, right: 32, top: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (role == "1") ...[
+                          InkWell(
+                            onTap: () {
+                              firestoreService.deleteNews(widget.id);
+                              final snackBar = SnackBar(
+                                duration: const Duration(seconds: 3),
+                                content: Text("Successfully Delete Article!"),
+                                backgroundColor: Colors.green,
+                              );
+
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(snackBar);
+                              Navigator.of(context).pushAndRemoveUntil(
+                                  PageTransition(
+                                      type: PageTransitionType.rightToLeft,
+                                      duration: Duration(milliseconds: 300),
+                                      alignment: Alignment.center,
+                                      child: Home()),
+                                  (Route<dynamic> route) => false);
+                            },
+                            child: Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                          ),
                           SizedBox(
                             width: 10,
                           ),
-                          Text('Share'),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                  type: PageTransitionType.rightToLeft,
+                                  duration: Duration(milliseconds: 200),
+                                  alignment: Alignment.center,
+                                  child: EditArticle(id: widget.id),
+                                ),
+                              );
+                            },
+                            child: Icon(Icons.edit_outlined),
+                          ),
                         ],
-                      ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return ShareBottomSheet();
+                              },
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.share),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text('Share'),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
                   ),
                   Divider(

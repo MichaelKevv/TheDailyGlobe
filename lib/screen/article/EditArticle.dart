@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
@@ -11,18 +12,22 @@ import 'package:thedailyglobe/screen/home/Home.dart';
 import 'package:thedailyglobe/screen/theme/Color.dart';
 import 'package:thedailyglobe/services/firestore.dart';
 import 'package:thedailyglobe/utils/formatDate.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:http/http.dart' as http;
 
-class AddArticle extends StatefulWidget {
+class EditArticle extends StatefulWidget {
+  final String id;
+  const EditArticle({required this.id});
+
   @override
-  State<AddArticle> createState() => _ArticleState();
+  State<EditArticle> createState() => _EdtArticleState();
 }
 
-class _ArticleState extends State<AddArticle> {
+class _EdtArticleState extends State<EditArticle> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   Uint8List? _image;
+  late Map<String, dynamic> newsData;
   String? _valCategory;
   final List<String> _listCategory = [
     'TOP STORIES',
@@ -32,6 +37,13 @@ class _ArticleState extends State<AddArticle> {
     'ENTERTAIMENT'
   ];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getData();
+  }
+
   void selectImage() async {
     Uint8List img = await pickImage(ImageSource.gallery);
     setState(() {
@@ -39,9 +51,47 @@ class _ArticleState extends State<AddArticle> {
     });
   }
 
+  Future<Uint8List> loadImageFromUrl(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to load image');
+    }
+  }
+
+  void getData() async {
+    try {
+      DocumentSnapshot newsSnapshot = await FirebaseFirestore.instance
+          .collection('news')
+          .doc(widget.id)
+          .get();
+
+      if (newsSnapshot.exists) {
+        newsData = newsSnapshot.data() as Map<String, dynamic>;
+        Uint8List imageBytes = await loadImageFromUrl(newsData['image']);
+        setState(() {
+          _titleController.text = newsData['title'];
+          _contentController.text = newsData['content'];
+          _valCategory = newsData['category'];
+          _image = imageBytes;
+        });
+      } else {
+        print('Dokumen tidak ditemukan');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
   void saveNews() async {
-    String res = await FirestoreService().addNews(_titleController.text,
-        _contentController.text, _valCategory.toString(), _image!);
+    String res = await FirestoreService().updateNews(
+        widget.id,
+        _titleController.text,
+        _contentController.text,
+        _valCategory.toString(),
+        _image!);
   }
 
   @override
@@ -53,7 +103,7 @@ class _ArticleState extends State<AddArticle> {
         backgroundColor: ColorsInt.colorWhite,
         centerTitle: true,
         title: Text(
-          'Add Article',
+          'Edit Article',
           style: TextStyle(color: ColorsInt.colorBlack),
         ),
         leading: InkWell(
@@ -226,12 +276,12 @@ class _ArticleState extends State<AddArticle> {
                     saveNews();
                     final snackBar = SnackBar(
                       duration: const Duration(seconds: 3),
-                      content: Text("Successfully Add Article!"),
+                      content: Text("Successfully Update Article!"),
                       backgroundColor: Colors.green,
                     );
 
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                    Navigator.of(context).pushAndRemoveUntil(
+                    await Navigator.of(context).pushAndRemoveUntil(
                         PageTransition(
                             type: PageTransitionType.rightToLeft,
                             duration: Duration(milliseconds: 300),
@@ -239,7 +289,7 @@ class _ArticleState extends State<AddArticle> {
                             child: Home()),
                         (Route<dynamic> route) => false);
                   },
-                  child: Text('Add Article'),
+                  child: Text('Update Article'),
                 ),
               ),
             ],

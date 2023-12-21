@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 
 class FirestoreService {
   final FirebaseStorage storage = FirebaseStorage.instance;
-  // get
   final CollectionReference news =
       FirebaseFirestore.instance.collection('news');
   final CollectionReference users =
@@ -77,7 +76,7 @@ class FirestoreService {
       String title, String content, String category, Uint8List file) async {
     String res = "Error";
     try {
-      String imageUrl = await uploadImage('newsImage-${DateTime.now()}', file);
+      String imageUrl = await uploadImage('newsImage-${Timestamp.now()}', file);
       await news.add({
         "title": title,
         "content": content,
@@ -94,5 +93,45 @@ class FirestoreService {
     return res;
   }
 
-  // Future<void> addNews(String category, String content, String createdBy, String image, ) {}
+  // UPDATE
+  Future<String> updateNews(String docId, String title, String content,
+      String category, Uint8List file) async {
+    String res = "Error";
+    try {
+      DocumentSnapshot oldData = await news.doc(docId).get();
+      String oldImageUrl = oldData['image'];
+      if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
+        Reference oldImageRef = storage.refFromURL(oldImageUrl);
+        await oldImageRef.delete();
+      }
+      String imageUrl = await uploadImage('newsImage-${Timestamp.now()}', file);
+      Map<String, dynamic> updatedData = {
+        "title": title,
+        "content": content,
+        "category": category,
+        "createdBy": "Admin",
+        "image": imageUrl,
+        "date": DateTime.now(),
+      };
+      await news.doc(docId).update(updatedData);
+
+      res = "News Updated";
+    } catch (e) {
+      print(e.toString());
+      res = "Error" + e.toString();
+    }
+    return res;
+  }
+
+  //DELETE
+  Future<void> deleteNews(String docId) async {
+    DocumentSnapshot oldData = await news.doc(docId).get();
+    String oldImageUrl = oldData['image'];
+    print(oldImageUrl);
+    if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
+      Reference oldImageRef = storage.refFromURL(oldImageUrl);
+      await oldImageRef.delete();
+    }
+    return news.doc(docId).delete();
+  }
 }

@@ -560,13 +560,15 @@ drawerLogin(BuildContext context, String role) {
                     margin: EdgeInsets.only(top: 20),
                     child: InkWell(
                       onTap: () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                            PageTransition(
-                                type: PageTransitionType.bottomToTop,
-                                duration: Duration(milliseconds: 300),
-                                alignment: Alignment.center,
-                                child: AddArticle()),
-                            (Route<dynamic> route) => false);
+                        Navigator.push(
+                          context,
+                          PageTransition(
+                            type: PageTransitionType.leftToRight,
+                            duration: const Duration(milliseconds: 300),
+                            alignment: Alignment.center,
+                            child: AddArticle(),
+                          ),
+                        );
                       },
                       child: Row(
                         children: [

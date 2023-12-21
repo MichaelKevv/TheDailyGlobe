@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:thedailyglobe/screen/article/AddArticle.dart';
 import 'package:thedailyglobe/screen/home/Home.dart';
 import 'package:thedailyglobe/screen/settings/About.dart';
 import 'package:thedailyglobe/screen/settings/Terms.dart';
@@ -204,6 +205,40 @@ class _SettingsState extends State<Setting> {
                   ),
                 ],
               ),
+              if (role == "1") ...[
+                const SizedBox(
+                  height: 20,
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageTransition(
+                        type: PageTransitionType.leftToRight,
+                        duration: const Duration(milliseconds: 300),
+                        alignment: Alignment.center,
+                        child: AddArticle(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.add_box_outlined,
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        const Text(
+                          "Add Article",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
               const Divider(
                 color: Colors.grey,
                 height: 50,
